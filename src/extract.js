@@ -225,34 +225,122 @@
     try { return new URL(href, base || location.href).href; } catch (e) { return null; }
   }
 
-  /** 找上一章/下一章链接（base 用于解析远程文档里的相对地址） */
+  /**
+   * 找上一章/下一章链接。
+   * 识别顺序：前缀文本 > 短文本包含 > title/aria-label/img alt 属性
+   *          > rel=next > 同目录章节号 +1/-1 推断。
+   * 「上一页/下一页」单独归为 prevPage/nextPage，是否算章节导航由 reader 层
+   * 结合「本章未完」标记决定（手机模板无分页时它就是上一章/下一章）。
+   */
   function findNav(doc, baseUrl) {
     const d = doc || document;
     const base = baseUrl || (d.location && d.location.href) || location.href;
     const baseNoHash = base.split('#')[0];
-    const out = { prev: null, next: null, nextPage: null };
-    const anchors = d.querySelectorAll('a[href]');
+    const out = { prev: null, next: null, nextPage: null, prevPage: null,
+                  prevSoft: null, nextSoft: null };
+    const anchors = d.querySelectorAll('a[href], a[onclick]');
+
+    const testAll = (cands) => {
+      for (const s of cands) {
+        if (!s) continue;
+        if (WB.nextPagePattern.test(s)) return { kind: 'nextPage' };
+        if (WB.prevPagePattern.test(s)) return { kind: 'prevPage' };
+        if (WB.nextPattern.test(s)) return { kind: 'next' };
+        if (WB.prevPattern.test(s)) return { kind: 'prev' };
+        if (s.length <= 8 && WB.nextContainPattern.test(s)) return { kind: 'nextSoft' };
+        if (s.length <= 8 && WB.prevContainPattern.test(s)) return { kind: 'prevSoft' };
+      }
+      return null;
+    };
+
     for (let i = 0; i < anchors.length; i++) {
       const a = anchors[i];
-      const txt = (a.textContent || '').replace(/\s+/g, '');
-      if (!txt || txt.length > 12) continue;
-      const href = abs(a.getAttribute('href'), base);
+      // href 缺失或为占位时，尝试从 onclick 里抠出跳转地址
+      let rawHref = a.getAttribute('href');
+      if (!rawHref || rawHref === '#' || rawHref.startsWith('javascript')) {
+        const oc = a.getAttribute('onclick') || '';
+        const m = oc.match(/location(?:\.href)?\s*=\s*['"]([^'"]+)['"]/);
+        if (m) rawHref = m[1];
+      }
+      if (!rawHref) continue;
+      const href = abs(rawHref, base);
       if (!href || href.split('#')[0] === baseNoHash || href.startsWith('javascript:')) continue;
-      // 分页锚优先判定并跳过：绝不能被 next/prev 抢占（否则点下一章会停在本文）
-      if (!out.nextPage && WB.nextPagePattern.test(txt)) {
-        out.nextPage = { url: href, text: txt };
+
+      const img = a.querySelector('img');
+      const cands = [
+        (a.textContent || '').replace(/\s+/g, ''),
+        (a.getAttribute('title') || '').replace(/\s+/g, ''),
+        (a.getAttribute('aria-label') || '').replace(/\s+/g, ''),
+        img && (img.getAttribute('alt') || img.getAttribute('title') || '').replace(/\s+/g, '')
+      ];
+      const hit = testAll(cands);
+      if (!hit) continue;
+
+      // 分页锚必须带页码语义才收录；「继续阅读」这类词太宽，交给 reader 层判断
+      if (hit.kind === 'nextPage' || hit.kind === 'prevPage') {
+        const key = hit.kind === 'nextPage' ? 'nextPage' : 'prevPage';
+        if (!out[key]) out[key] = { url: href, text: cands[0] || cands[1] || '' };
         continue;
       }
-      if (!out.prev && WB.prevPattern.test(txt)) out.prev = { url: href, text: txt };
-      else if (!out.next && WB.nextPattern.test(txt)) out.next = { url: href, text: txt };
-      if (out.prev && out.next && out.nextPage) break;
+      if (hit.kind === 'nextSoft' || hit.kind === 'prevSoft') {
+        const key = hit.kind === 'nextSoft' ? 'nextSoft' : 'prevSoft';
+        if (!out[key]) out[key] = { url: href, text: cands[0] || '' };
+        if (out.prev && out.next && out[key]) break;
+        continue;
+      }
+      out[hit.kind] = { url: href, text: cands[0] || cands[1] || '' };
+      if (out.prev && out.next) break;
     }
+
+    // 前缀匹配没找全时，用短文本包含匹配兜底
+    if (!out.next && out.nextSoft) out.next = out.nextSoft;
+    if (!out.prev && out.prevSoft) out.prev = out.prevSoft;
+
+    // rel=next / rel=prev（部分标准站）
     if (!out.next) {
-      // 注意：必须查 d（传入的文档），解析远程章节时不能用当前页面
       const rel = d.querySelector('a[rel="next"]');
       if (rel) { const h = abs(rel.getAttribute('href'), base); if (h && h.split('#')[0] !== baseNoHash) out.next = { url: h, text: '下一章' }; }
     }
+    if (!out.prev) {
+      const rel = d.querySelector('a[rel="prev"]');
+      if (rel) { const h = abs(rel.getAttribute('href'), base); if (h && h.split('#')[0] !== baseNoHash) out.prev = { url: h, text: '上一章' }; }
+    }
+
+    // 最后一道：同目录章节号 +1/-1 推断（文本是图标/图片、或 JS 注入导航的站）
+    if (!out.next) { const u = findChapterByStep(d, base, 1); if (u) out.next = { url: u, text: '下一章' }; }
+    if (!out.prev) { const u = findChapterByStep(d, base, -1); if (u) out.prev = { url: u, text: '上一章' }; }
+
+    delete out.nextSoft;
+    delete out.prevSoft;
     return out;
+  }
+
+  /**
+   * 章节 URL 递增推断：当前章节 URL 末尾是数字（…/123.html、…/123/），
+   * 同目录下数字 ±1 的链接几乎必是相邻章节。用于文本识别失效的站点。
+   */
+  function findChapterByStep(doc, baseUrl, step) {
+    let path, search = '', hash = '';
+    try {
+      const u = new URL(baseUrl);
+      path = u.pathname; search = u.search; hash = '';
+    } catch (e) { return null; }
+    const m = path.match(/^(.*?)(\d+)((?:_\d+)?)(\.html?)?(\/?)$/);
+    if (!m || !m[2]) return null;
+    const [, pre, numStr, , ext, slash] = m;
+    const n = parseInt(numStr, 10);
+    const targetPath = pre + (n + step) + (ext || '') + (slash || '');
+    const anchors = doc.querySelectorAll('a[href]');
+    for (let i = 0; i < anchors.length; i++) {
+      const raw = anchors[i].getAttribute('href');
+      if (!raw || raw.startsWith('javascript') || raw === '#') continue;
+      let absUrl;
+      try { absUrl = new URL(raw, baseUrl); } catch (e) { continue; }
+      if (absUrl.pathname === targetPath && (!search || absUrl.search === search)) {
+        return absUrl.href;
+      }
+    }
+    return null;
   }
 
   /** 正文页是否明确提示"本章未完"（分页章节） */

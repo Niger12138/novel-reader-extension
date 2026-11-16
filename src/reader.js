@@ -500,7 +500,14 @@
 
   function goChapter(kind) {
     const nav = state.data && state.data.nav;
-    const target = nav && nav[kind];
+    let target = nav && nav[kind];
+    // 手机模板兜底：底部导航只有「上一页/下一页」且本章没有分页标记时，
+    // 它们就是上一章/下一章（PC 分页站本章必有「本章未完」标记，不会走到这）。
+    if (!target && nav) {
+      const paginated = WB.extract.hasUnfinishedMarker(state.data.rawText || '');
+      if (kind === 'next' && nav.nextPage && !paginated) target = nav.nextPage;
+      if (kind === 'prev' && nav.prevPage && !paginated) target = nav.prevPage;
+    }
     if (!target || !target.url) {
       toast(kind === 'prev' ? '已经是第一章了' : '没有找到下一章');
       return;
