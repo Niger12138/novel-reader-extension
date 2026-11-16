@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "夜读 · 小说阅读模式",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "把小说站的章节页换成干净的阅读界面：广告、侧栏、原站排版全部隐藏，只留正文。",
   "permissions": [
     "storage",

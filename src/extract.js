@@ -201,12 +201,23 @@
 
   function getTitle(doc) {
     const d = doc || document;
-    const cands = ['h1', '.bookname h1', '#neirong h1', '.content h1', 'h2'];
+    const cands = ['h1', '.bookname h1', '#neirong h1', '.content h1', 'h2', 'h3'];
+    const pool = [];
     for (const sel of cands) {
-      const el = d.querySelector(sel);
-      const t = el && (el.textContent || '').trim();
-      if (t && t.length >= 3 && t.length <= 80) return t.replace(/\s+/g, ' ');
+      for (const el of d.querySelectorAll(sel)) {
+        const t = (el.textContent || '').replace(/\s+/g, ' ').trim();
+        if (!t || t.length < 3 || t.length > 80) continue;
+        // logo 标题（h1 里套着指向首页的链接，如"笔趣阁"）不配当章节标题
+        const a = el.querySelector('a[href]');
+        if (a && /^(\/|#|https?:\/\/[^/]+\/?)$/i.test(a.getAttribute('href') || '')) continue;
+        // 短文本且不像章节名（如站点名"笔趣阁"）也跳过
+        if (t.length <= 6 && !WB.chapterTitlePattern.test(t)) continue;
+        pool.push(t);
+      }
     }
+    // 两轮：先找像章节名的（第X章/第X页），防推荐区标题（"已完结热门小说推荐"）抢位
+    for (const t of pool) if (WB.chapterTitlePattern.test(t) || /第.{1,10}[章页節]/.test(t)) return t;
+    if (pool.length) return pool[0];
     const dt = (d.title || '').split(/[_|｜\-–—]/)[0].trim();
     return dt || '未命名章节';
   }
@@ -348,6 +359,51 @@
     return /本章未完|请点击下一页|下一页继续|继续阅读下一?页/.test(text);
   }
 
+  /**
+   * base64 → UTF-8 文本。注意 atob 只给 Latin-1 串，中文 UTF-8 字节必须再过
+   * 一遍 TextDecoder，否则中文全部是乱码（实测踩过的坑）。
+   */
+  function b64ToUtf8(b64) {
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    try { return new TextDecoder('utf-8').decode(bytes); }
+    catch (e) {
+      try { return decodeURIComponent(escape(bin)); } catch (e2) { return bin; }
+    }
+  }
+
+  /**
+   * 解码藏在 script 里的 base64 正文（实测 xbiqugew 等站：
+   * <script>document.writeln(qsbs.bb('PHA+...'))</script>，解码即 <p>正文</p>）。
+   * 这类站静态 HTML 里没有正文——fetch 翻章时必须先解码再走提取管线。
+   * 返回解码出的段落数（0 表示没有此类内容）。
+   */
+  function decodeScriptedContent(doc) {
+    const scripts = [...doc.querySelectorAll('script')];
+    let inserted = 0;
+    for (const s of scripts) {
+      const t = s.textContent || '';
+      if (t.length < 60) continue;
+      // writeln( xx.bb('base64') ) —— 单参数函数调用且参数是 base64
+      const re = /(?:writeln|write)\s*\(\s*[\w$]+(?:\s*\.\s*[\w$]+)+\s*\(\s*['"]([A-Za-z0-9+/=]{40,})['"]\s*\)\s*\)/g;
+      let m, html = '';
+      while ((m = re.exec(t))) {
+        try {
+          const decoded = b64ToUtf8(m[1]);
+          if (/[\u4e00-\u9fa5]/.test(decoded)) html += decoded;
+        } catch (e) {}
+      }
+      if (!html) continue;
+      const tmp = doc.createElement('div');
+      tmp.innerHTML = html;
+      let n = 0;
+      while (tmp.firstChild) { s.parentNode.insertBefore(tmp.firstChild, s); n++; }
+      inserted += n;
+    }
+    return inserted;
+  }
+
   WB.extract = {
     findContent,
     htmlToText,
@@ -357,6 +413,7 @@
     getBookName,
     findNav,
     hasUnfinishedMarker,
+    decodeScriptedContent,
     looksLikeChapter,
     compact,
     cjkCount

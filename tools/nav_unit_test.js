@@ -179,5 +179,21 @@ console.log('\n[reader 层 · 下一页归属判断]');
   check('有分页标记 → 标记可被识别', WB.extract.hasUnfinishedMarker(paginatedRaw) === true, paginatedRaw);
 }
 
+/* ---------- 变体 10：base64 藏文（xbiqugew 形态） ---------- */
+console.log('\n[base64 藏文站]');
+{
+  const b64 = Buffer.from('<p>「方向感极强」说的正是任小粟。</p><p>任小粟心想：“我不需要什么方向感。”</p><p>他一路向西，走过了荒野。</p><p>荒野尽头是一座废弃的图书馆。</p><p>图书馆里还有许多旧书。</p><p>他坐在台阶上读了很久。</p><p>天黑之前终于看到了炊烟。</p><p>炊烟来自一处避难所。</p><p>避难所的门口挂着木牌。</p>', 'utf-8').toString('base64');
+  const base = 'https://www.xbiqugew.com/book/15894206/100.html';
+  const html = `<div class="word_read"><h3>第1章 起点</h3>
+    <script>document.writeln(qsbs.bb('${b64}'));</script>
+    <div class="read_btn"><a href="/book/15894206.html">上一章</a><a href="/book/15894206/101.html">下一章</a></div></div>`;
+  const { WB, doc } = setup(html, base);
+  const n = WB.extract.decodeScriptedContent(doc);
+  check('base64 正文解码出 9 个段落', n === 9, n);
+  const raw = doc.querySelector('.word_read').textContent;
+  check('解码内容为可读中文', raw.includes('任小粟') && raw.includes('避难所'), raw.slice(0, 30));
+  check('UTF-8 中文无乱码', !/\u00e[0-9a-f]|æ|ç/.test(raw), raw.slice(0, 20));
+}
+
 console.log(`\n结果: ${pass} 通过, ${fail} 失败`);
 process.exit(fail ? 1 : 0);

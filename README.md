@@ -1,4 +1,4 @@
-# 夜读 · 小说阅读模式（v1.2）
+# 夜读 · 小说阅读模式（v1.4）
 
 一个浏览器扩展：把小说网站的章节页**完全替换**成独立的阅读界面——
 站点自带的主题、排版、广告、弹窗全部看不见，只留下干净的正文。
@@ -7,6 +7,22 @@
 + 多色渐变场景主题 4 套（**晚霞** 橙粉紫渐变、**星空** 深蓝紫多层光晕、**青瓷** 影青渐变、**蜜桃** 蜜桃奶油渐变）。
 
 > **第一次安装**：双击本文件夹里的 `install-guide.html`，按四个步骤点完即可（约 1 分钟，全程鼠标，无命令行）。
+
+## ✅ 已验证适配的推荐站点
+
+以下站点**逐一实抓章节页、跑过扩展完整识别管线**（正文定位 / 章节判定 / 段落清洗 /
+上下章识别 / 噪音过滤，7 项检查全过），验证脚本与快照存档见 `tools/verify_sites.js`
+与 `../research/verified/`：
+
+| 站点 | 类型 | 验证结果 |
+|---|---|---|
+| [笔趣阁365](https://www.biquge365.net/) | bqg365 模板 | 2196 字/69 段，噪音全清，翻章正常 |
+| [5200小说网](https://www.3zmxsw.cc/) | 杰奇CMS | 2741 字/57 段（试读《帝霸》章节） |
+| [书趣阁](http://www.xshuquge.net/) | 杰奇CMS | 1058 字/29 段，翻章正常 |
+| [新笔趣阁](https://www.xbiqugew.com/) | base64 藏文型 | 正文藏于 script，v1.4 已支持解码，1049 字/36 段 |
+
+> 未在表中的站不代表不能用——通用识别算法兜底覆盖大多数结构；
+> JS 挑战页站（如 uuks5、beqege）浏览器里可读，但无法离线验证所以不列。
 
 ## 怎么用（三步）
 
@@ -47,9 +63,9 @@
 
 | 模板家族 | 实测站点 | 真实结构 |
 |---|---|---|
-| 杰奇CMS（最大的一族） | 3zmxsw.cc | `<div id="content" class="showtxt">`，`<br />` 分隔，正文里混 `<script>` 与"首发域名"广告 |
+| 杰奇CMS（最大的一族） | 3zmxsw.cc / xshuquge.net | `<div id="content" class="showtxt">`，`<br />` 分隔，正文里混 `<script>` 与"首发域名"广告 |
 | 笔趣阁365 型 | biquge365.net | `#neirong > #txt`，`<br>` + `&nbsp;` 缩进，`body#moshi` 主题类，正文内嵌广告行 |
-| 新版 bqg 型 | xbiqugew.com | `body.novel_info` + `.detail-box / .first_txt` |
+| base64 藏文型 | xbiqugew.com | 正文被 base64 编码塞在 `<script>document.writeln(qsbs.bb('…'))</script>` 里，由 JS 解码注入 → v1.4 起扩展在 fetch 时自行解码（UTF-8） |
 | SPA 型 | bqg128.com | 首屏只有 `#loading`，正文由 JS 注入 → 扩展会等待 |
 | JS 反爬型 | beqege / uuks5 | 首屏是 5KB 挑战页 → 同样等待正文出现 |
 

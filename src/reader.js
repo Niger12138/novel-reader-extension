@@ -445,6 +445,9 @@
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const html = await res.text();
     const doc = new DOMParser().parseFromString(html, 'text/html');
+    // 部分站（如 xbiqugew）把正文 base64 藏在 script 里靠 JS 注入——先解码，
+    // 否则 fetch 解析出的"章节"只有几百字，无刷新翻章会误判失败。
+    WB.extract.decodeScriptedContent(doc);
     doc.querySelectorAll('script,noscript').forEach((n) => n.remove());
 
     const found = WB.extract.findContent(doc);
@@ -512,6 +515,16 @@
       toast(kind === 'prev' ? '已经是第一章了' : '没有找到下一章');
       return;
     }
+    // 站点把「下一章」链到目录页（常见于最新一章）——别真的跳过去，直接告知
+    try {
+      const cur = new URL(location.href);
+      const nx = new URL(target.url, location.href);
+      const isIndex = /^index(_\d+)?\.html?$/i.test(nx.pathname.split('/').pop() || '');
+      if (isIndex && nx.pathname.replace(/[^/]*$/, '') === cur.pathname.replace(/[^/]*$/, '')) {
+        toast(kind === 'next' ? '已经是最新章节了' : '已经是第一章了');
+        return;
+      }
+    } catch (e) {}
     navigateTo(target.url, true);
   }
 
