@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>夜读 · 阅读模式</title>
+<link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <span class="mark">夜</span>
+      <div>
+        <h1>夜读</h1>
+        <p id="site" class="site">读取中…</p>
+      </div>
+    </div>
+  </header>
+
+  <section class="card main">
+    <div id="status" class="status">正在看这一页…</div>
+    <button id="toggle" class="cta">开始阅读</button>
+    <p id="hint" class="hint"></p>
+    <button id="retry" class="linkbtn" hidden>再检测一次</button>
+  </section>
+
+  <section class="card" id="resumeCard" hidden>
+    <div class="label-row"><span>上次读到</span></div>
+    <button id="resume" class="resume">
+      <b id="resumeTitle">—</b>
+      <i id="resumeMeta">—</i>
+    </button>
+  </section>
+
+  <section class="card">
+    <div class="row">
+      <label for="auto">打开这个网站时自动进入</label>
+      <button id="auto" class="switch" role="switch" aria-checked="false"><i></i></button>
+    </div>
+    <p class="tiny">只对当前网站生效，随时可以关掉。</p>
+  </section>
+
+  <section class="card">
+    <div class="label-row"><span>背景</span></div>
+    <div class="swatches" id="themes">
+      <button class="sw" data-theme="sunset" title="暖阳纸">暖阳</button>
+      <button class="sw" data-theme="night" title="夜读墨">夜读</button>
+      <button class="sw" data-theme="jade" title="护眼青">护眼</button>
+      <button class="sw" data-theme="plain" title="极简白">极简</button>
+      <button class="sw" data-theme="sakura" title="樱花粉">樱花</button>
+      <button class="sw" data-theme="latte" title="咖啡奶">咖啡</button>
+      <button class="sw" data-theme="violet" title="薰衣紫">薰衣</button>
+      <button class="sw" data-theme="sea" title="深海蓝">深海</button>
+      <button class="sw" data-theme="obsidian" title="曜石黑">曜石</button>
+      <button class="sw" data-theme="dusk" title="晚霞">晚霞</button>
+      <button class="sw" data-theme="starry" title="星空">星空</button>
+      <button class="sw" data-theme="celadon" title="青瓷">青瓷</button>
+      <button class="sw" data-theme="peach" title="蜜桃">蜜桃</button>
+    </div>
+    <div class="label-row">
+      <span>字号</span>
+      <span class="fs-ctrl">
+        <button id="fsMinus" title="字小一点">A－</button>
+        <b id="fsv">20</b>
+        <button id="fsPlus" title="字大一点">A＋</button>
+      </span>
+    </div>
+    <input id="fs" class="range" type="range" min="16" max="30" step="1" value="20">
+  </section>
+
+  <footer class="foot">
+    <span>快捷键 <kbd>Alt</kbd>+<kbd>R</kbd> 随时开关</span>
+    <span id="ver">v1.2</span>
+  </footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>

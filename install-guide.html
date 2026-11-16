@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>安装夜读 · 一步步来（约 1 分钟）</title>
+<style>
+  :root {
+    --bg1: #fdf6ec; --bg2: #f6e6d2;
+    --fg: #3b2f27; --sub: #8a7462;
+    --accent: #c2703c; --accent2: #b4643a;
+    --line: rgba(194,112,60,.22);
+    --card: rgba(255,255,255,.72);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 40px 20px 64px;
+    font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    color: var(--fg);
+    background:
+      radial-gradient(900px 520px at 12% -8%, #ffe6cd 0%, rgba(255,230,205,0) 62%),
+      linear-gradient(168deg, var(--bg1) 0%, var(--bg2) 100%);
+    min-height: 100vh;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  .hero { display: flex; align-items: center; gap: 16px; margin-bottom: 10px; }
+  .mark {
+    width: 56px; height: 56px; border-radius: 17px; flex: none;
+    display: grid; place-items: center; color: #fff;
+    background: linear-gradient(150deg, #d98b5f, #b4643a);
+    box-shadow: 0 12px 26px rgba(180,100,58,.3);
+  }
+  h1 { font-size: 26px; margin: 0; letter-spacing: .01em; }
+  .lead { color: var(--sub); font-size: 14px; margin: 6px 0 26px; line-height: 1.7; }
+
+  .card {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 20px; padding: 22px 24px; margin-bottom: 16px;
+    box-shadow: 0 12px 34px rgba(150,100,60,.09);
+    backdrop-filter: blur(10px);
+  }
+  .step { display: flex; gap: 16px; padding: 18px 0; border-bottom: 1px dashed var(--line); }
+  .step:last-child { border-bottom: 0; padding-bottom: 4px; }
+  .step:first-child { padding-top: 2px; }
+  .num {
+    width: 30px; height: 30px; border-radius: 50%; flex: none;
+    display: grid; place-items: center;
+    background: #fff; border: 1.5px solid var(--accent); color: var(--accent);
+    font-weight: 700; font-size: 14px;
+  }
+  .step h3 { font-size: 15.5px; margin: 4px 0 7px; }
+  .step p { font-size: 13.5px; color: var(--sub); line-height: 1.75; margin: 0 0 10px; }
+  .step p:last-child { margin-bottom: 0; }
+  b.hl { color: var(--fg); background: rgba(194,112,60,.13); padding: 1px 5px; border-radius: 5px; }
+
+  .copybox {
+    display: flex; align-items: center; gap: 10px;
+    background: #fff; border: 1px solid var(--line); border-radius: 12px;
+    padding: 10px 10px 10px 14px; margin-top: 4px;
+  }
+  .copybox code {
+    flex: 1; min-width: 0; font-size: 12.5px; color: var(--fg);
+    font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .copybox button {
+    flex: none; border: 0; border-radius: 9px; cursor: pointer;
+    padding: 8px 14px; font-size: 12.5px; font-weight: 600; color: #fff;
+    background: linear-gradient(150deg, #d98b5f, #b4643a);
+    box-shadow: 0 6px 14px rgba(180,100,58,.26);
+    transition: transform .14s ease;
+  }
+  .copybox button:active { transform: scale(.97); }
+
+  .note {
+    margin-top: 10px; padding: 10px 13px; border-radius: 11px;
+    background: rgba(194,112,60,.09); border-left: 3px solid var(--accent);
+    font-size: 12.5px; color: #7a4c2c; line-height: 1.7;
+  }
+
+  h2 { font-size: 16px; margin: 0 0 14px; }
+  .use { display: grid; gap: 12px; }
+  .use li {
+    list-style: none; display: flex; gap: 11px; align-items: flex-start;
+    font-size: 13.5px; line-height: 1.7; color: var(--sub);
+  }
+  .use li i {
+    flex: none; width: 22px; height: 22px; border-radius: 7px; margin-top: 1px;
+    display: grid; place-items: center; font-style: normal; font-size: 11.5px;
+    background: rgba(194,112,60,.14); color: var(--accent); font-weight: 700;
+  }
+  .use b { color: var(--fg); }
+
+  .mock {
+    margin-top: 16px; border-radius: 14px; overflow: hidden;
+    border: 1px solid var(--line); background: linear-gradient(168deg,#fdf6ec,#f3e2cd);
+    padding: 0 0 14px;
+  }
+  .mock .bar {
+    display: flex; align-items: center; gap: 8px; padding: 9px 12px;
+    background: rgba(255,255,255,.6); border-bottom: 1px solid var(--line);
+    font-size: 10.5px; color: var(--sub);
+  }
+  .mock .bar span { padding: 4px 9px; border: 1px solid var(--line); border-radius: 7px; background: #fff; }
+  .mock .bar em { flex: 1; font-style: normal; }
+  .mock .lines { padding: 16px 26px 0; }
+  .mock .lines h4 { font-size: 12.5px; text-align: center; margin: 4px 0 12px; }
+  .mock .lines p {
+    height: 7px; border-radius: 4px; margin: 0 0 9px;
+    background: rgba(59,47,39,.16);
+  }
+  .mock .lines p:nth-child(2n) { width: 92%; }
+  .mock .lines p:nth-child(3n) { width: 78%; }
+
+  .faq dt { font-size: 13.5px; font-weight: 600; margin-top: 14px; }
+  .faq dd { margin: 6px 0 0; font-size: 13px; color: var(--sub); line-height: 1.75; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 34px; transform: translate(-50%, 16px);
+    background: #3b2f27; color: #fdf6ec; font-size: 13px;
+    padding: 10px 18px; border-radius: 999px; opacity: 0; pointer-events: none;
+    transition: all .28s ease; z-index: 99;
+  }
+  .toast.show { opacity: .96; transform: translate(-50%, 0); }
+  .foot { text-align: center; color: var(--sub); font-size: 12px; margin-top: 22px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <div class="mark">
+      <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor"
+        stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 6.6C10.5 5.3 8.4 4.6 6 4.6H3.6v13H6c2.4 0 4.5.7 6 2 1.5-1.3 3.6-2 6-2h2.4v-13H18c-2.4 0-4.5.7-6 2Z"/>
+        <path d="M12 6.6v13"/>
+      </svg>
+    </div>
+    <div>
+      <h1>把「夜读」装进浏览器</h1>
+      <p class="lead">四步，大约 1 分钟。全程鼠标点击，不需要任何命令。</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="step">
+      <div class="num">1</div>
+      <div>
+        <h3>打开浏览器的「扩展管理」页面</h3>
+        <p>新开一个标签页，在地址栏里粘贴下面这行，按回车：</p>
+        <div class="copybox">
+          <code id="addr">edge://extensions</code>
+          <button data-copy="edge://extensions">复制</button>
+        </div>
+        <div class="note">用 Chrome 的话，把它换成 <b class="hl">chrome://extensions</b>；用 360 / QQ 浏览器的话，在地址栏输入 <b class="hl">chrome://extensions</b> 也通常可以打开。</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="num">2</div>
+      <div>
+        <h3>打开「开发人员模式」开关</h3>
+        <p>Edge 在页面<b class="hl">左侧栏的底部</b>，Chrome 在<b class="hl">右上角</b>。打开后，页面上会多出几个按钮。</p>
+        <p>开关是灰色的关闭状态时，第 3 步的按钮不会出现——先把这个开关打开。</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="num">3</div>
+      <div>
+        <h3>点击「加载解压缩的扩展」</h3>
+        <p>它会弹出系统的文件夹选择窗口。不要选桌面，也不要选下载文件夹——请选下面这个文件夹：</p>
+        <div class="copybox">
+          <code id="path">C:\Users\HUAWEI\WorkBuddy\2026-11-11-09-03-40\novel-reader-extension</code>
+          <button data-copy="C:\Users\HUAWEI\WorkBuddy\2026-11-11-09-03-40\novel-reader-extension">复制路径</button>
+        </div>
+        <div class="note">小技巧：在文件夹窗口顶部的路径栏里粘贴上面这段路径，回车，就会直接进到这个文件夹；然后点窗口右下角的「选择文件夹」。</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="num">4</div>
+      <div>
+        <h3>确认装好了</h3>
+        <p>扩展列表里会出现一个<b class="hl">「夜读 · 小说阅读模式」</b>卡片，说明安装成功。</p>
+        <p>建议点一下浏览器右上角的拼图图标，把「夜读」<b class="hl">固定到工具栏</b>——以后一眼就能看到它。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>装好之后怎么读</h2>
+    <ul class="use">
+      <li><i>1</i><span>打开任意小说的<b>具体一章</b>（不是目录页，也不是书页）。</span></li>
+      <li><i>2</i><span>页面<b>右下角</b>会出现「阅读模式 · 只看正文」的按钮，点它。</span></li>
+      <li><i>3</i><span>第一次进入会有一张引导卡：勾选「以后打开本站直接进入」，以后连点都不用点。</span></li>
+      <li><i>4</i><span>想退出就按 <b>Esc</b>；想调字体和背景，点右上角「设置」。</span></li>
+    </ul>
+
+    <div class="mock">
+      <div class="bar">
+        <em>测试书名 · 第七章 雪山之行</em>
+        <span>‹ 上一章</span><span>下一章 ›</span><span>设置</span><span>退出</span>
+      </div>
+      <div class="lines">
+        <h4>第七章 雪山之行</h4>
+        <p></p><p></p><p></p><p></p><p></p><p></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>遇到问题看这里</h2>
+    <dl class="faq">
+      <dt>右下角没有出现按钮？</dt>
+      <dd>当前这一页可能不是章节页（目录页、书页不会触发），也可能站点改版了。点浏览器工具栏的「夜读」图标，面板里会明确告诉你这一页能不能用；也可以点「再检测一次」。</dd>
+
+      <dt>点了按钮没反应？</dt>
+      <dd>刷新一下页面再点。个别站点会在页面加载完成后立刻重排内容，刷新一次就能正常识别。</dd>
+
+      <dt>翻章的时候想回到原网页看看评论？</dt>
+      <dd>按 Esc 退出，原网页一直在下面没被破坏，滚动位置也还在。</dd>
+
+      <dt>不想让它出现在所有网站上？</dt>
+      <dd>阅读界面里勾选了「以后自动进入」的网站才自动打开，其余网站只会在章节页显示一个小按钮，不点它就不会有任何变化。</dd>
+    </dl>
+  </div>
+
+  <p class="foot">装完之后这个说明页可以关掉，也可以留着随时回来看。</p>
+</div>
+
+<div class="toast" id="toast">已复制</div>
+<script>
+  const toast = document.getElementById('toast');
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toast.classList.remove('show'), 1600);
+  }
+  document.querySelectorAll('[data-copy]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const text = btn.dataset.copy;
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast('已复制，去粘贴吧');
+      } catch (e) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); showToast('已复制，去粘贴吧'); }
+        catch (e2) { showToast('复制失败，请手动选中复制'); }
+        document.body.removeChild(ta);
+      }
+    });
+  });
+</script>
+</body>
+</html>
